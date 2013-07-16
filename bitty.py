@@ -20,7 +20,7 @@ class TenthbitClient(Protocol):
         self.factory.root.on_connection(self.transport)
 
     def dataReceived(self, data):
-        self.factory.root.print_message(data)
+        self.factory.root.handle_payload(data)
 
 class TenthbitClientFactory(ClientFactory):
     protocol = TenthbitClient
@@ -73,7 +73,7 @@ class Root(TabbedPanel):
         self.chat.focus = True
         self.chat.select_all()
 
-    def print_message(self, data):
+    def handle_payload(self, data):
         print "*** " + data
         self.scrollback.text +=  ">>> " + data
         parsed = json.loads(data)
