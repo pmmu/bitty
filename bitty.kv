@@ -1,0 +1,78 @@
+#:kivy 1.1.0
+
+Root:
+    chat: chat
+    scrollback: scrollback
+
+    do_default_tab: False
+
+    TabbedPanelItem:
+        text: 'Status'
+        BoxLayout:
+            orientation: 'vertical'
+            BoxLayout:
+                size_hint_y: None
+                height: 30
+                Button:
+                    text: 'Connect'
+                    on_release: root.show_connect()
+
+            TextInput:
+                id: scrollback
+                text: ''
+    BoxLayout:
+        TextInput:
+            id: chat
+            size_hint_y: None
+            multiline: False
+            height: 30
+            on_text_validate: root.send_from_inputbox()
+            focus: True
+
+<ConnectDialog>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: 'vertical'
+
+        GridLayout:
+            cols: 2
+            row_default_height: "30dp"
+            row_force_default: True
+
+            Label:
+                text: 'Server'
+            TextInput:
+                id: server
+                multiline: False
+                text: 'bit.elrod.me'
+
+            Label:
+                text: 'Port'
+            TextInput:
+                id: port
+                multiline: False
+                text: '10817'
+
+            Label:
+                text: 'Username'
+            TextInput:
+                id: username
+                multiline: False
+
+            Label:
+                text: 'Password'
+            TextInput:
+                id: password
+                multiline: False
+                password: True
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+            Button:
+                text: "Connect"
+                on_release: root.connect(server.text, port.text, username.text, password.text)
