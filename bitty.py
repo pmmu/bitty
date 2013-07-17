@@ -73,13 +73,32 @@ class Root(TabbedPanel):
         self._popup.dismiss()
 
     def send_from_inputbox(self):
-        if self.connection:
-            command, space, arguments = self.chat.text.partition(' ')
+        allowed_commands_without_connection = [
+            '/connect',
+        ]
+        command, space, arguments = self.chat.text.partition(' ')
+        if self.connection or command in allowed_commands_without_connection and command.startswith('/'):
             if command.startswith('/'):
                 command = command[1:]
                 if command == 'raw':
+                    # Send a raw JSON packet down the wire.
                     self.send_payload(arguments, False)
+                elif command == 'connect':
+                    # Connect to a server without the connection dialog.
+                    # Format should be user:pass server[:port]
+                    split = arguments.split(' ', 1)
+                    if ':' in split[0] and len(split) == 2:
+                        username, password = split[0].split(':')
+                        if ':' in split[1]:
+                            server, port = split[1].split(':')
+                        else:
+                            server, port = split[1], 10817
+                        self.connect(server, port, username, password)
+                    else:
+                        self.add_to_scrollback('Format: /connect username:password server[:port]')
+
                 elif command == 'me':
+                    # Perform a third-person action.
                     msg = {
                         'op': 'act',
                         'rm': '48557f95', # TODO: Unhardcode
