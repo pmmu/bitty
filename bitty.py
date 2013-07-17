@@ -134,6 +134,9 @@ class Root(TabbedPanel):
         if parsed['op'] == 'leave':
             self.add_to_scrollback('[LEFT] %s' % (parsed['sr']))
 
+        if parsed['op'] == 'disconnect':
+            self.add_to_scrollback('[QUIT] %s' % (parsed['sr']))
+
     def on_connection(self, connection):
         print "/!\ Connected successfully!"
         self.connection = connection
