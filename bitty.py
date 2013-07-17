@@ -73,32 +73,35 @@ class Root(TabbedPanel):
         self._popup.dismiss()
 
     def send_from_inputbox(self):
-        command, space, arguments = self.chat.text.partition(' ')
-        if command.startswith('/'):
-            command = command[1:]
-            if command == 'raw':
-                self.send_payload(arguments, False)
-            elif command == 'me':
+        if self.connection:
+            command, space, arguments = self.chat.text.partition(' ')
+            if command.startswith('/'):
+                command = command[1:]
+                if command == 'raw':
+                    self.send_payload(arguments, False)
+                elif command == 'me':
+                    msg = {
+                        'op': 'act',
+                        'rm': '48557f95', # TODO: Unhardcode
+                        'ex': {
+                            'message': arguments,
+                            'isaction': True
+                        }
+                    }
+                    self.add_to_scrollback('>> ' + arguments)
+                    self.send_payload(msg)
+            else:
                 msg = {
                     'op': 'act',
                     'rm': '48557f95', # TODO: Unhardcode
                     'ex': {
-                        'message': arguments,
-                        'isaction': True
+                        'message': self.chat.text
                     }
                 }
-                self.add_to_scrollback('>> ' + arguments)
+                self.add_to_scrollback('>> ' + self.chat.text)
                 self.send_payload(msg)
         else:
-            msg = {
-                'op': 'act',
-                'rm': '48557f95', # TODO: Unhardcode
-                'ex': {
-                    'message': self.chat.text
-                }
-            }
-            self.add_to_scrollback('>> ' + self.chat.text)
-            self.send_payload(msg)
+            self.add_to_scrollback(':-( :: Not connected.')
 
         self.chat.text = ''
         self.chat.focus = True
