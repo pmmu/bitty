@@ -14,6 +14,7 @@ from twisted.internet import ssl, reactor
 from twisted.internet.protocol import ClientFactory, Protocol
 
 import json
+import sys
 
 class TenthbitClient(Protocol):
     def connectionMade(self):
@@ -83,6 +84,18 @@ class Root(TabbedPanel):
                 if command == 'raw':
                     # Send a raw JSON packet down the wire.
                     self.send_payload(arguments, False)
+                elif command == 'quit' or command == 'disconnect':
+                    if arguments:
+                        self.send_payload(
+                            {
+                                'op': 'disconnect',
+                                'ex': {
+                                    'message': arguments,
+                                }
+                            })
+                    else:
+                        self.send_payload({'op': 'disconnect'})
+                    sys.exit(0)
                 elif command == 'connect':
                     # Connect to a server without the connection dialog.
                     # Format should be user:pass server[:port]
