@@ -20,14 +20,14 @@ Root:
             TextInput:
                 id: scrollback
                 text: ''
-    BoxLayout:
-        TextInput:
-            id: chat
-            size_hint_y: None
-            multiline: False
-            height: 30
-            on_text_validate: root.send_from_inputbox()
-            focus: True
+
+            TextInput:
+                id: chat
+                size_hint_y: None
+                multiline: False
+                height: 30
+                on_text_validate: root.send_from_inputbox()
+                focus: True
 
 <ConnectDialog>:
     BoxLayout:
@@ -45,7 +45,7 @@ Root:
             TextInput:
                 id: server
                 multiline: False
-                text: 'bit.elrod.me'
+                text: '10bit.danopia.net'
 
             Label:
                 text: 'Port'

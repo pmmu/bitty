@@ -49,10 +49,14 @@ class Root(TabbedPanel):
     username = None
     password = None
 
-    def send_payload(self, payload):
+    def send_payload(self, payload, dumps=True):
         '''Take a JSON string and send it down the wire.'''
-        self.scrollback.text += '<<< ' + str(payload) + '\n'
-        self.connection.write(str(payload) + "\n")
+        if dumps:
+            encoded = json.dumps(payload)
+        else:
+            encoded = payload
+        print '<<< ' + encoded + '\n'
+        self.connection.write(encoded + '\n')
 
     def send_auth(self):
         auth = {
@@ -62,25 +66,73 @@ class Root(TabbedPanel):
                 'password': self.password,
             }
         }
-        self.send_payload(json.dumps(auth))
+        self.scrollback.text += '*Authenticating*\n'
+        self.send_payload(auth)
 
     def dismiss_popup(self):
         self._popup.dismiss()
 
     def send_from_inputbox(self):
-        self.send_payload(self.chat.text)
+        command, space, arguments = self.chat.text.partition(' ')
+        if command.startswith('/'):
+            command = command[1:]
+            if command == 'raw':
+                self.send_payload(arguments, False)
+            elif command == 'me':
+                msg = {
+                    'op': 'act',
+                    'rm': '48557f95', # TODO: Unhardcode
+                    'ex': {
+                        'message': arguments,
+                        'isaction': True
+                    }
+                }
+                self.add_to_scrollback('>> ' + arguments)
+                self.send_payload(msg)
+        else:
+            msg = {
+                'op': 'act',
+                'rm': '48557f95', # TODO: Unhardcode
+                'ex': {
+                    'message': self.chat.text
+                }
+            }
+            self.add_to_scrollback('>> ' + self.chat.text)
+            self.send_payload(msg)
+
         self.chat.text = ''
         self.chat.focus = True
         self.chat.select_all()
 
+    def add_to_scrollback(self, data):
+        self.scrollback.text += data + '\n'
+
     def handle_payload(self, data):
         print "*** " + data
-        self.scrollback.text +=  ">>> " + data
         parsed = json.loads(data)
+
+        if not parsed.get('op'):
+            pass
+
+        if parsed.get('ex') and parsed['ex'].get('isack') == True:
+            return
 
         # TODO: Use fn.py's Option monad.
         if parsed['op'] == 'welcome' and self.username != None and self.password != None:
             self.send_auth()
+
+        if parsed['op'] == 'act':
+            if parsed.get('sr') and parsed['ex'].get('message'):
+                if parsed['ex'].get('isaction'):
+                    self.add_to_scrollback('*** %s %s' % (parsed['sr'], parsed['ex']['message']))
+                else:
+                    self.add_to_scrollback('<%s> %s' % (parsed['sr'], parsed['ex']['message']))
+
+        if parsed['op'] == 'join':
+            self.add_to_scrollback('[JOINED] %s' % (parsed['sr']))
+
+        if parsed['op'] == 'leave':
+            self.add_to_scrollback('[LEFT] %s' % (parsed['sr']))
 
     def on_connection(self, connection):
         print "/!\ Connected successfully!"
